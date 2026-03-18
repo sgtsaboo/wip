@@ -15,6 +15,24 @@ export const DEFAULT_SETTINGS = {
   weatherUnit: 'imperial'
 };
 
+export const SEARCH_CONFIG = {
+  defaultEngine: 'google', // Options: 'google', 'duckduckgo', 'bing'
+  engines: {
+    google: {
+      name: 'Google',
+      url: 'https://www.google.com/search?q='
+    },
+    duckduckgo: {
+      name: 'DuckDuckGo',
+      url: 'https://duckduckgo.com/?q='
+    },
+    bing: {
+      name: 'Bing',
+      url: 'https://www.bing.com/search?q='
+    }
+  }
+};
+
 export const INITIAL_PAGES = [
   { id: 'home-group', name: 'Home' },
   { id: 'work-group', name: 'Work' }

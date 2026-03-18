@@ -1,6 +1,49 @@
 import { createIcons, icons } from "lucide";
 import Sortable from "sortablejs";
 import { DEFAULT_SETTINGS, INITIAL_PAGES, INITIAL_TILES } from "./constants.js";
+import { SEARCH_CONFIG } from './constants.js';
+
+const searchForm = document.getElementById('search-form');
+const searchInput = document.getElementById('search-input');
+const engineSelect = document.getElementById('engine-select');
+
+// 1. Build the dropdown options from constants.js
+Object.keys(SEARCH_CONFIG.engines).forEach(key => {
+  const engine = SEARCH_CONFIG.engines[key];
+  const option = document.createElement('option');
+  option.value = engine.url;
+  option.textContent = engine.name;
+  engineSelect.appendChild(option);
+});
+
+// 2. Load the saved default engine from localStorage OR use the constant default
+const savedEngineUrl = localStorage.getItem('defaultSearchEngine') || SEARCH_CONFIG.engines[SEARCH_CONFIG.defaultEngine].url;
+engineSelect.value = savedEngineUrl;
+
+// 3. Update localStorage whenever the user changes the dropdown
+engineSelect.addEventListener('change', () => {
+  localStorage.setItem('defaultSearchEngine', engineSelect.value);
+});
+
+// 4. Handle Search Execution
+searchForm.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const query = searchInput.value.trim();
+  
+  if (query) {
+    // Opens in a new tab as requested
+    window.open(engineSelect.value + encodeURIComponent(query), '_blank');
+    searchInput.value = ''; // Optional: clear input after search
+  }
+});
+
+// 5. UX: Pressing '/' focuses the search bar automatically
+window.addEventListener('keydown', (e) => {
+  if (e.key === '/' && document.activeElement !== searchInput) {
+    e.preventDefault();
+    searchInput.focus();
+  }
+});
 
 // --- Utilities ---
 const hexToRgb = (hex) => {
