@@ -35,15 +35,18 @@ const initSearch = () => {
     engineSelect.appendChild(option);
   });
 
-  // Load saved default engine or fallback to constant
-  const savedEngineUrl =
-    localStorage.getItem("defaultSearchEngine") ||
+  // Load saved default engine from state.settings or fallback to constant
+  // Note: state.settings.defaultSearchEngine is preferred (persisted with saveState)
+  const fallbackEngineUrl =
     SEARCH_CONFIG.engines[SEARCH_CONFIG.defaultEngine].url;
+  const savedEngineUrl =
+    (state.settings && state.settings.defaultSearchEngine) || fallbackEngineUrl;
   engineSelect.value = savedEngineUrl;
 
-  // Persist default when changed
+  // Persist default when changed - save into state.settings and persist
   engineSelect.addEventListener("change", () => {
-    localStorage.setItem("defaultSearchEngine", engineSelect.value);
+    state.settings.defaultSearchEngine = engineSelect.value;
+    saveState();
   });
 
   // Execute search on submit
@@ -66,6 +69,16 @@ const initSearch = () => {
 
   _searchInitialized = true;
 };
+
+// Focus search input on '/' key
+window.addEventListener("keydown", (e) => {
+  if (e.key === "/" && document.activeElement !== searchInput) {
+    e.preventDefault();
+    searchInput.focus();
+  }
+});
+
+_searchInitialized = true;
 
 // --- State Management ---
 let state = {
@@ -567,6 +580,7 @@ const openEditModal = (tileId) => {
     modalRoot.innerHTML = "";
     render();
   };
+  weather;
 };
 
 const openSettings = () => {
@@ -701,7 +715,17 @@ const openSettings = () => {
               <div id="bg-preview-box" class="mt-2 w-full aspect-video rounded-lg bg-cover bg-center border border-current/10" style="background-image: ${state.settings.backgroundImage ? `url(${state.settings.backgroundImage})` : "none"}"></div>
             </div>
           </div>
-
+          <!-- Search Engine selection -->
+          <div class="space-y-3">
+            <label class="text-[10px] font-bold uppercase opacity-50 flex items-center gap-2">
+              <i data-lucide="search"></i> Default Search Engine
+            </label>
+            <div class="p-3 rounded-xl border dark:border-slate-800 bg-current/5 flex items-center gap-2">
+              <select id="s-default-engine" class="w-full px-3 py-2 rounded-lg border dark:bg-slate-800 dark:border-slate-700 outline-none text-sm">
+                <!-- Options populated via JS -->
+              </select>
+            </div>
+          </div>
           <!-- Weather Cities -->
           <div class="space-y-4">
             <label class="text-[10px] font-bold uppercase opacity-50 flex items-center gap-2"><i data-lucide="map-pin" size="14"></i> Weather Cities (Up to 5)</label>
@@ -798,6 +822,31 @@ const openSettings = () => {
   attachSettingsEvents();
 };
 
+// Populate default search engine select in settings modal
+const defaultEngineSelect = document.getElementById("s-default-engine");
+if (defaultEngineSelect) {
+  defaultEngineSelect.innerHTML = "";
+  Object.keys(SEARCH_CONFIG.engines).forEach((key) => {
+    const engine = SEARCH_CONFIG.engines[key];
+    const opt = document.createElement("option");
+    opt.value = engine.url;
+    opt.textContent = engine.name;
+    defaultEngineSelect.appendChild(opt);
+  });
+  // set current value from state.settings (fallback to SEARCH_CONFIG.defaultEngine)
+  const fallbackEngineUrl =
+    SEARCH_CONFIG.engines[SEARCH_CONFIG.defaultEngine].url;
+  defaultEngineSelect.value =
+    (state.settings && state.settings.defaultSearchEngine) || fallbackEngineUrl;
+
+  defaultEngineSelect.onchange = (e) => {
+    state.settings.defaultSearchEngine = e.target.value;
+    saveState();
+    // update main engine select if present
+    const mainEngineSelect = document.getElementById("engine-select");
+    if (mainEngineSelect) mainEngineSelect.value = e.target.value;
+  };
+}
 const attachSettingsEvents = () => {
   const close = () => {
     modalRoot.innerHTML = "";
