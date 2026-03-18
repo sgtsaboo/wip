@@ -1,45 +1,47 @@
 import { createIcons, icons } from "lucide";
 import Sortable from "sortablejs";
 import { DEFAULT_SETTINGS, INITIAL_PAGES, INITIAL_TILES } from "./constants.js";
-import { SEARCH_CONFIG } from './constants.js';
+import { SEARCH_CONFIG } from "./constants.js";
 
-const searchForm = document.getElementById('search-form');
-const searchInput = document.getElementById('search-input');
-const engineSelect = document.getElementById('engine-select');
+const searchForm = document.getElementById("search-form");
+const searchInput = document.getElementById("search-input");
+const engineSelect = document.getElementById("engine-select");
 
 // 1. Build the dropdown options from constants.js
-Object.keys(SEARCH_CONFIG.engines).forEach(key => {
+Object.keys(SEARCH_CONFIG.engines).forEach((key) => {
   const engine = SEARCH_CONFIG.engines[key];
-  const option = document.createElement('option');
+  const option = document.createElement("option");
   option.value = engine.url;
   option.textContent = engine.name;
   engineSelect.appendChild(option);
 });
 
 // 2. Load the saved default engine from localStorage OR use the constant default
-const savedEngineUrl = localStorage.getItem('defaultSearchEngine') || SEARCH_CONFIG.engines[SEARCH_CONFIG.defaultEngine].url;
+const savedEngineUrl =
+  localStorage.getItem("defaultSearchEngine") ||
+  SEARCH_CONFIG.engines[SEARCH_CONFIG.defaultEngine].url;
 engineSelect.value = savedEngineUrl;
 
 // 3. Update localStorage whenever the user changes the dropdown
-engineSelect.addEventListener('change', () => {
-  localStorage.setItem('defaultSearchEngine', engineSelect.value);
+engineSelect.addEventListener("change", () => {
+  localStorage.setItem("defaultSearchEngine", engineSelect.value);
 });
 
 // 4. Handle Search Execution
-searchForm.addEventListener('submit', (e) => {
+searchForm.addEventListener("submit", (e) => {
   e.preventDefault();
   const query = searchInput.value.trim();
-  
+
   if (query) {
     // Opens in a new tab as requested
-    window.open(engineSelect.value + encodeURIComponent(query), '_blank');
-    searchInput.value = ''; // Optional: clear input after search
+    window.open(engineSelect.value + encodeURIComponent(query), "_blank");
+    searchInput.value = ""; // Optional: clear input after search
   }
 });
 
 // 5. UX: Pressing '/' focuses the search bar automatically
-window.addEventListener('keydown', (e) => {
-  if (e.key === '/' && document.activeElement !== searchInput) {
+window.addEventListener("keydown", (e) => {
+  if (e.key === "/" && document.activeElement !== searchInput) {
     e.preventDefault();
     searchInput.focus();
   }
@@ -126,14 +128,14 @@ const render = () => {
     hour12: !state.settings.timeFormat24h,
   });
 
-const date = state.currentTime;
+  const date = state.currentTime;
 
-const weekday = date.toLocaleDateString([], { weekday: "long" });
-const month = date.toLocaleDateString([], { month: "long" });
-const day = date.toLocaleDateString([], { day: "numeric" });
+  const weekday = date.toLocaleDateString([], { weekday: "long" });
+  const month = date.toLocaleDateString([], { month: "long" });
+  const day = date.toLocaleDateString([], { day: "numeric" });
 
-// Join them with new lines
-const dateStr = `${weekday},\n ${month}\n${day}`;
+  // Join them with new lines
+  const dateStr = `${weekday},\n ${month}\n${day}`;
 
   const filteredTiles = state.tiles
     .filter((t) => t.pageId === state.activePageId)
@@ -146,7 +148,7 @@ const dateStr = `${weekday},\n ${month}\n${day}`;
       <div class="flex-1 w-full grid grid-cols-1 md:grid-cols-[22%_56%_22%] h-full overflow-hidden">
         
         <!-- Left Sidebar -->
-        <aside class="hidden md:flex flex-col items-center pt-16 p-8 overflow-y-auto no-scrollbar z-20">
+        <aside class="hidden md:flex flex-col items-center  p-8 overflow-y-auto no-scrollbar z-20">
           <div id="time-display" class="text-4xl font-extrabold tracking-tighter tabular-nums drop-shadow-sm mb-8 ${isDark ? "text-slate-100" : "text-gray-900"}">
              ${timeStr}
           </div>
@@ -155,7 +157,8 @@ const dateStr = `${weekday},\n ${month}\n${day}`;
         </aside>
 
         <!-- Main Body -->
-        <main class="flex flex-col items-center h-full overflow-y-auto no-scrollbar px-6 pt-12 pb-24 z-10">
+        <main class="flex flex-col items-center h-full overflow-y-auto no-scrollbar px-6 pb-24 z-10">
+        
 
           <!-- Page Groups (Tabs) -->
           <nav id="group-tabs-nav" class="w-full flex justify-center mb-10">
@@ -209,7 +212,7 @@ const dateStr = `${weekday},\n ${month}\n${day}`;
         </main>
 
         <!-- Right Sidebar -->
-        <aside class="hidden md:flex flex-col items-center pt-16 p-8 overflow-y-auto no-scrollbar z-20">
+        <aside class="hidden md:flex flex-col items-center p-8 overflow-y-auto no-scrollbar z-20">
   <div class="text-4xl font-extrabold tracking-tighter text-center leading-tight mb-8 whitespace-pre-line ${isDark ? "text-slate-100" : "text-gray-900"}">${dateStr}</div>
   
   <div id="weather-list-right" class="w-full flex flex-col gap-4 mb-8"></div>
@@ -832,6 +835,24 @@ const attachSettingsEvents = () => {
   if (bgUrlInput) {
     bgUrlInput.oninput = (e) => {
       state.settings.backgroundImage = e.target.value;
+      function updateDateTime() {
+        const now = new Date();
+
+        // Update Clock (24h format for simplicity, adjust as needed)
+        const timeStr = now.toLocaleTimeString("en-US", { hour12: false });
+        document.getElementById("clock").textContent = timeStr;
+
+        // Update Date
+        const dateOptions = { month: "short", day: "2-digit", year: "numeric" };
+        document.getElementById("date").textContent = now.toLocaleDateString(
+          "en-US",
+          dateOptions,
+        );
+      }
+
+      // Run every second
+      setInterval(updateDateTime, 1000);
+      updateDateTime(); // Initial call
       const previewBox = document.getElementById("bg-preview-box");
       if (previewBox)
         previewBox.style.backgroundImage = state.settings.backgroundImage
