@@ -3,50 +3,6 @@ import Sortable from "sortablejs";
 import { DEFAULT_SETTINGS, INITIAL_PAGES, INITIAL_TILES } from "./constants.js";
 import { SEARCH_CONFIG } from "./constants.js";
 
-const searchForm = document.getElementById("search-form");
-const searchInput = document.getElementById("search-input");
-const engineSelect = document.getElementById("engine-select");
-
-// 1. Build the dropdown options from constants.js
-Object.keys(SEARCH_CONFIG.engines).forEach((key) => {
-  const engine = SEARCH_CONFIG.engines[key];
-  const option = document.createElement("option");
-  option.value = engine.url;
-  option.textContent = engine.name;
-  engineSelect.appendChild(option);
-});
-
-// 2. Load the saved default engine from localStorage OR use the constant default
-const savedEngineUrl =
-  localStorage.getItem("defaultSearchEngine") ||
-  SEARCH_CONFIG.engines[SEARCH_CONFIG.defaultEngine].url;
-engineSelect.value = savedEngineUrl;
-
-// 3. Update localStorage whenever the user changes the dropdown
-engineSelect.addEventListener("change", () => {
-  localStorage.setItem("defaultSearchEngine", engineSelect.value);
-});
-
-// 4. Handle Search Execution
-searchForm.addEventListener("submit", (e) => {
-  e.preventDefault();
-  const query = searchInput.value.trim();
-
-  if (query) {
-    // Opens in a new tab as requested
-    window.open(engineSelect.value + encodeURIComponent(query), "_blank");
-    searchInput.value = ""; // Optional: clear input after search
-  }
-});
-
-// 5. UX: Pressing '/' focuses the search bar automatically
-window.addEventListener("keydown", (e) => {
-  if (e.key === "/" && document.activeElement !== searchInput) {
-    e.preventDefault();
-    searchInput.focus();
-  }
-});
-
 // --- Utilities ---
 const hexToRgb = (hex) => {
   const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
@@ -57,6 +13,59 @@ const hexToRgb = (hex) => {
 
 const getFavicon = (url) =>
   `https://www.google.com/s2/favicons?sz=128&domain=${url}`;
+
+let _searchInitialized = false;
+
+const initSearch = () => {
+  // Prevent double-initializing across re-renders
+  if (_searchInitialized) return;
+
+  const searchForm = document.getElementById("search-form");
+  const searchInput = document.getElementById("search-input");
+  const engineSelect = document.getElementById("engine-select");
+  if (!searchForm || !searchInput || !engineSelect) return;
+
+  // Build dropdown options from SEARCH_CONFIG
+  engineSelect.innerHTML = "";
+  Object.keys(SEARCH_CONFIG.engines).forEach((key) => {
+    const engine = SEARCH_CONFIG.engines[key];
+    const option = document.createElement("option");
+    option.value = engine.url;
+    option.textContent = engine.name;
+    engineSelect.appendChild(option);
+  });
+
+  // Load saved default engine or fallback to constant
+  const savedEngineUrl =
+    localStorage.getItem("defaultSearchEngine") ||
+    SEARCH_CONFIG.engines[SEARCH_CONFIG.defaultEngine].url;
+  engineSelect.value = savedEngineUrl;
+
+  // Persist default when changed
+  engineSelect.addEventListener("change", () => {
+    localStorage.setItem("defaultSearchEngine", engineSelect.value);
+  });
+
+  // Execute search on submit
+  searchForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const query = searchInput.value.trim();
+    if (query) {
+      window.open(engineSelect.value + encodeURIComponent(query), "_blank");
+      searchInput.value = "";
+    }
+  });
+
+  // Focus search input on '/' key
+  window.addEventListener("keydown", (e) => {
+    if (e.key === "/" && document.activeElement !== searchInput) {
+      e.preventDefault();
+      searchInput.focus();
+    }
+  });
+
+  _searchInitialized = true;
+};
 
 // --- State Management ---
 let state = {
@@ -158,8 +167,25 @@ const render = () => {
 
         <!-- Main Body -->
         <main class="flex flex-col items-center h-full overflow-y-auto no-scrollbar px-6 pb-24 z-10">
-        
+        <div class="flex flex-col items-center justify-center my-6 w-full max-w-2xl mx-auto px-4"> <form id="search-form" class="relative w-full flex items-center bg-gray-800 rounded-xl shadow-2xl border border-gray-700 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 transition-all duration-200" > <select id="engine-select" class="bg-gray-700 text-gray-200 text-sm px-4 py-3 rounded-l-xl outline-none border-r border-gray-600 cursor-pointer hover:bg-gray-600 transition" ></select>
+        <input
+  type="text"
+  id="search-input"
+  placeholder="Search the web..."
+  class="w-full bg-transparent text-white px-6 py-3 outline-none placeholder-gray-500"
+  autocomplete="off"
+/>
 
+<button
+  type="submit"
+  class="px-6 py-3 text-gray-400 hover:text-white transition"
+>
+  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+  </svg>
+</button>
+</form> </div>
           <!-- Page Groups (Tabs) -->
           <nav id="group-tabs-nav" class="w-full flex justify-center mb-10">
             <div id="group-tabs-list" class="flex flex-wrap justify-center border-b ${isDark ? "border-slate-800" : "border-gray-200"}">
@@ -229,6 +255,8 @@ const render = () => {
 
   createIcons({ icons });
   attachAppEvents();
+  initSearch();
+  // <-- initialize the search elements and listeners
   renderCalendar();
   fetchWeather();
 };
