@@ -604,7 +604,6 @@ const openSettings = () => {
                 </div>
               </div>
             </button>
-            </button>
              <button id="s-weather-toggle" class="p-4 rounded-xl border flex flex-col gap-2 transition-all dark:border-slate-800 dark:bg-slate-800/50 hover:border-theme/40">
               <span class="text-[10px] font-bold uppercase opacity-50">Weather</span>
               <div class="flex items-center justify-between w-full">
@@ -915,7 +914,7 @@ const attachSettingsEvents = () => {
       function updateDateTime() {
         const now = new Date();
 
-        // Update Clock (24h format for simplicity, adjust as needed)
+        /*         // Update Clock (24h format for simplicity, adjust as needed)
         const timeStr = now.toLocaleTimeString("en-US", { hour12: false });
         document.getElementById("clock").textContent = timeStr;
 
@@ -924,7 +923,7 @@ const attachSettingsEvents = () => {
         document.getElementById("date").textContent = now.toLocaleDateString(
           "en-US",
           dateOptions,
-        );
+        ); */
       }
 
       // Run every second
