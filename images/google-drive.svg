@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120.715" height="104.4" id="google-drive">
+  <defs>
+    <linearGradient id="a" x2="1" y2="1" gradientUnits="objectBoundingBox">
+      <stop offset="0" stop-color="#f6c338"></stop>
+      <stop offset=".523" stop-color="#ffd351"></stop>
+      <stop offset="1" stop-color="#f6c338"></stop>
+    </linearGradient>
+    <linearGradient id="b" x1="1" x2="0" y2="1" gradientUnits="objectBoundingBox">
+      <stop offset="0" stop-color="#286ee6"></stop>
+      <stop offset=".521" stop-color="#4286fb"></stop>
+      <stop offset="1" stop-color="#286ee6"></stop>
+    </linearGradient>
+    <linearGradient id="c" x1=".653" x2=".36" y2="1" gradientUnits="objectBoundingBox">
+      <stop offset="0" stop-color="#069b5a"></stop>
+      <stop offset=".531" stop-color="#11aa62"></stop>
+      <stop offset="1" stop-color="#069b5a"></stop>
+    </linearGradient>
+  </defs>
+  <path fill="url(#a)" d="M83.3 0h41.967l39.468 68.044h-42.061Z" transform="translate(-44.02)"></path>
+  <path fill="url(#b)" d="m144.179 144.3-21.031 36.356H44.4L65.478 144.3Z" transform="translate(-23.463 -76.256)"></path>
+  <path fill="url(#c)" d="M20.937 104.4 0 68.044 39.28 0l21.078 36.45Z"></path>
+  <path d="m20.937 104.4 39.185-36.356H42.015Zm99.779-36.356H78.701l-9.242-15.938ZM39.28 0l12.119 51.87 8.959-15.42Z" opacity=".1"></path>
+</svg>
