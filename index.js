@@ -14,60 +14,86 @@ const hexToRgb = (hex) => {
 const getFavicon = (url) =>
   `https://www.google.com/s2/favicons?sz=128&domain=${url}`;
 
-let _searchInitialized = false;
+//let _searchInitialized = false;
+
+// Map URL -> engine key (for backwards compatibility)
+const findEngineKeyByUrl = (val) => {
+  if (!val) return null;
+  const keys = Object.keys(SEARCH_CONFIG.engines || {});
+  for (const k of keys) {
+    if (SEARCH_CONFIG.engines[k].url === val) return k;
+  }
+  return null;
+};
+
+let _globalSearchKeyAttached = false;
 
 const initSearch = () => {
-  // Prevent double-initializing across re-renders
-  if (_searchInitialized) return;
-
   const searchForm = document.getElementById("search-form");
   const searchInput = document.getElementById("search-input");
   const engineSelect = document.getElementById("engine-select");
   if (!searchForm || !searchInput || !engineSelect) return;
 
-  // Build dropdown options from SEARCH_CONFIG
+  // Build dropdown options from SEARCH_CONFIG (use keys as values)
   engineSelect.innerHTML = "";
   Object.keys(SEARCH_CONFIG.engines).forEach((key) => {
     const engine = SEARCH_CONFIG.engines[key];
     const option = document.createElement("option");
-    option.value = engine.url;
+    option.value = key; // use engine key (e.g. "google")
     option.textContent = engine.name;
     engineSelect.appendChild(option);
   });
 
-  // Load saved default engine from state.settings or fallback to constant
-  // Note: state.settings.defaultSearchEngine is preferred (persisted with saveState)
-  const fallbackEngineUrl =
-    SEARCH_CONFIG.engines[SEARCH_CONFIG.defaultEngine].url;
-  const savedEngineUrl =
-    (state.settings && state.settings.defaultSearchEngine) || fallbackEngineUrl;
-  engineSelect.value = savedEngineUrl;
+  // Determine currently saved engine (support both key and legacy URL)
+  const saved = state.settings && state.settings.defaultSearchEngine;
+  const savedIsKey =
+    saved && SEARCH_CONFIG.engines && SEARCH_CONFIG.engines[saved];
+  const savedIsUrl = saved && findEngineKeyByUrl(saved);
+  const selectedKey = savedIsKey
+    ? saved
+    : savedIsUrl
+      ? findEngineKeyByUrl(saved)
+      : SEARCH_CONFIG.defaultEngine;
+  engineSelect.value = selectedKey;
 
-  // Persist default when changed - save into state.settings and persist
+  // Persist default when changed - save engine key into state.settings and persist
+  // (attach to this DOM element instance)
   engineSelect.addEventListener("change", () => {
-    state.settings.defaultSearchEngine = engineSelect.value;
+    state.settings.defaultSearchEngine = engineSelect.value; // store key
     saveState();
   });
 
-  // Execute search on submit
+  // Execute search on submit: build URL from selected engine key
   searchForm.addEventListener("submit", (e) => {
     e.preventDefault();
     const query = searchInput.value.trim();
-    if (query) {
-      window.open(engineSelect.value + encodeURIComponent(query), "_blank");
-      searchInput.value = "";
-    }
+    if (!query) return;
+    const key = engineSelect.value;
+    const engine =
+      SEARCH_CONFIG.engines[key] ||
+      SEARCH_CONFIG.engines[SEARCH_CONFIG.defaultEngine];
+    const url =
+      (engine && engine.url) ||
+      SEARCH_CONFIG.engines[SEARCH_CONFIG.defaultEngine].url;
+    window.open(url + encodeURIComponent(query), "_blank");
+    searchInput.value = "";
   });
 
-  // Focus search input on '/' key
-  window.addEventListener("keydown", (e) => {
-    if (e.key === "/" && document.activeElement !== searchInput) {
-      e.preventDefault();
-      searchInput.focus();
-    }
-  });
-
-  _searchInitialized = true;
+  // Attach global '/' key to focus the search input exactly once
+  if (!_globalSearchKeyAttached) {
+    window.addEventListener("keydown", (e) => {
+      if (
+        e.key === "/" &&
+        document.activeElement !== document.getElementById("search-input")
+      ) {
+        // Prevent typing "/" into some other input
+        e.preventDefault();
+        const si = document.getElementById("search-input");
+        if (si) si.focus();
+      }
+    });
+    _globalSearchKeyAttached = true;
+  }
 };
 
 // --- State Management ---
@@ -703,6 +729,7 @@ const openSettings = () => {
               <div id="bg-preview-box" class="mt-2 w-full aspect-video rounded-lg bg-cover bg-center border border-current/10" style="background-image: ${state.settings.backgroundImage ? `url(${state.settings.backgroundImage})` : "none"}"></div>
             </div>
           </div>
+
           <!-- Search Engine selection -->
           <div class="space-y-3">
             <label class="text-[10px] font-bold uppercase opacity-50 flex items-center gap-2">
@@ -714,6 +741,7 @@ const openSettings = () => {
               </select>
             </div>
           </div>
+
           <!-- Weather Cities -->
           <div class="space-y-4">
             <label class="text-[10px] font-bold uppercase opacity-50 flex items-center gap-2"><i data-lucide="map-pin" size="14"></i> Weather Cities (Up to 5)</label>
@@ -813,19 +841,26 @@ const openSettings = () => {
     Object.keys(SEARCH_CONFIG.engines).forEach((key) => {
       const engine = SEARCH_CONFIG.engines[key];
       const opt = document.createElement("option");
-      opt.value = engine.url;
+      opt.value = key; // store key
       opt.textContent = engine.name;
       settingsEngineSelect.appendChild(opt);
     });
 
-    const fallbackEngineUrl =
-      SEARCH_CONFIG.engines[SEARCH_CONFIG.defaultEngine].url;
-    settingsEngineSelect.value =
-      (state.settings && state.settings.defaultSearchEngine) ||
-      fallbackEngineUrl;
+    // Determine saved key (support saved key or legacy saved URL)
+    const saved = state.settings && state.settings.defaultSearchEngine;
+    const savedIsKey =
+      saved && SEARCH_CONFIG.engines && SEARCH_CONFIG.engines[saved];
+    const savedIsUrl = saved && findEngineKeyByUrl(saved);
+    const selectedKey = savedIsKey
+      ? saved
+      : savedIsUrl
+        ? findEngineKeyByUrl(saved)
+        : SEARCH_CONFIG.defaultEngine;
+
+    settingsEngineSelect.value = selectedKey;
 
     settingsEngineSelect.onchange = (e) => {
-      state.settings.defaultSearchEngine = e.target.value;
+      state.settings.defaultSearchEngine = e.target.value; // store key
       saveState();
       // update main engine select if present
       const mainEngineSelect = document.getElementById("engine-select");
@@ -836,8 +871,6 @@ const openSettings = () => {
   createIcons({ icons });
   attachSettingsEvents();
 };
-
-// --- Settings wiring and events are handled inside attachSettingsEvents() ---
 
 const attachSettingsEvents = () => {
   const close = () => {
@@ -882,22 +915,26 @@ const attachSettingsEvents = () => {
 
   const accentPicker = document.getElementById("s-custom-accent");
   const accentHex = document.getElementById("accent-hex-display");
-  accentPicker.oninput = (e) => {
-    const val = e.target.value;
-    state.settings.themeColor = val;
-    accentHex.innerText = val;
-    document.documentElement.style.setProperty("--theme-color", val);
-  };
+  if (accentPicker) {
+    accentPicker.oninput = (e) => {
+      const val = e.target.value;
+      state.settings.themeColor = val;
+      if (accentHex) accentHex.innerText = val;
+      document.documentElement.style.setProperty("--theme-color", val);
+    };
+  }
 
   const bgPicker = document.getElementById("s-custom-bg");
   const bgHex = document.getElementById("bg-hex-display");
-  bgPicker.oninput = (e) => {
-    const val = e.target.value;
-    state.settings.backgroundColor = val;
-    bgHex.innerText = val;
-    document.documentElement.style.setProperty("--bg-color", val);
-    document.documentElement.style.setProperty("--bg-rgb", hexToRgb(val));
-  };
+  if (bgPicker) {
+    bgPicker.oninput = (e) => {
+      const val = e.target.value;
+      state.settings.backgroundColor = val;
+      if (bgHex) bgHex.innerText = val;
+      document.documentElement.style.setProperty("--bg-color", val);
+      document.documentElement.style.setProperty("--bg-rgb", hexToRgb(val));
+    };
+  }
 
   // Background Image Handling
   const bgUrlInput = document.getElementById("s-bg-url");
@@ -906,17 +943,6 @@ const attachSettingsEvents = () => {
       state.settings.backgroundImage = e.target.value;
       function updateDateTime() {
         const now = new Date();
-
-        /*         // Update Clock (24h format for simplicity, adjust as needed)
-        const timeStr = now.toLocaleTimeString("en-US", { hour12: false });
-        document.getElementById("clock").textContent = timeStr;
-
-        // Update Date
-        const dateOptions = { month: "short", day: "2-digit", year: "numeric" };
-        document.getElementById("date").textContent = now.toLocaleDateString(
-          "en-US",
-          dateOptions,
-        ); */
       }
 
       // Run every second
@@ -984,7 +1010,7 @@ const attachSettingsEvents = () => {
       clearTimeout(searchTimer);
       const q = e.target.value;
       if (q.length < 2) {
-        cityResults.classList.add("hidden");
+        if (cityResults) cityResults.classList.add("hidden");
         return;
       }
       searchTimer = setTimeout(async () => {
@@ -993,7 +1019,7 @@ const attachSettingsEvents = () => {
             `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(q)}&count=5&language=en&format=json`,
           );
           const data = await res.json();
-          if (data.results) {
+          if (data.results && cityResults) {
             cityResults.innerHTML = data.results
               .map(
                 (loc) => `
@@ -1032,14 +1058,22 @@ const attachSettingsEvents = () => {
       }),
   );
 
-  document.getElementById("s-add-group").onclick = () => {
-    state.pages.push({ id: "p" + Date.now(), name: "New Group" });
-    openSettings();
-  };
-  document.getElementById("s-sort-az").onclick = () => {
-    state.pages.sort((a, b) => a.name.localeCompare(b.name));
-    openSettings();
-  };
+  const addGroupBtn = document.getElementById("s-add-group");
+  if (addGroupBtn) {
+    addGroupBtn.onclick = () => {
+      state.pages.push({ id: "p" + Date.now(), name: "New Group" });
+      openSettings();
+    };
+  }
+
+  const sortAzBtn = document.getElementById("s-sort-az");
+  if (sortAzBtn) {
+    sortAzBtn.onclick = () => {
+      state.pages.sort((a, b) => a.name.localeCompare(b.name));
+      openSettings();
+    };
+  }
+
   document.querySelectorAll(".group-del").forEach(
     (b) =>
       (b.onclick = () => {
@@ -1052,96 +1086,115 @@ const attachSettingsEvents = () => {
       }),
   );
 
-  document.getElementById("s-export").onclick = () => {
-    const data = JSON.stringify({
-      settings: state.settings,
-      tiles: state.tiles,
-      pages: state.pages,
-    });
-    const blob = new Blob([data], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "speeddial-native-backup.json";
-    a.click();
-    URL.revokeObjectURL(url);
-  };
+  const exportBtn = document.getElementById("s-export");
+  if (exportBtn) {
+    exportBtn.onclick = () => {
+      const data = JSON.stringify({
+        settings: state.settings,
+        tiles: state.tiles,
+        pages: state.pages,
+      });
+      const blob = new Blob([data], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "speeddial-native-backup.json";
+      a.click();
+      URL.revokeObjectURL(url);
+    };
+  }
 
   const fileInput = document.getElementById("import-file");
-  document.getElementById("s-import").onclick = () => {
-    fileInput.dataset.mode = "native";
-    fileInput.click();
-  };
-  document.getElementById("s-import-sd2").onclick = () => {
-    fileInput.dataset.mode = "sd2";
-    fileInput.click();
-  };
+  const importBtn = document.getElementById("s-import");
+  const importSd2Btn = document.getElementById("s-import-sd2");
+  if (importBtn) {
+    importBtn.onclick = () => {
+      if (!fileInput) return;
+      fileInput.dataset.mode = "native";
+      fileInput.click();
+    };
+  }
+  if (importSd2Btn) {
+    importSd2Btn.onclick = () => {
+      if (!fileInput) return;
+      fileInput.dataset.mode = "sd2";
+      fileInput.click();
+    };
+  }
 
-  fileInput.onchange = (e) => {
-    const file = e.target.files[0];
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      try {
-        const json = JSON.parse(event.target.result);
-        if (fileInput.dataset.mode === "sd2") {
-          const sd2Pages = (json.groups || []).map((g) => ({
-            id: String(g.id),
-            name: g.title,
-          }));
-          const sd2Tiles = (json.dials || []).map((d) => ({
-            id: String(d.id || Math.random()),
-            title: d.title,
-            url: d.url,
-            imageUrl: d.thumbnail || "",
-            position: d.position,
-            pageId: String(d.idgroup),
-          }));
-          state.pages = sd2Pages.length ? sd2Pages : state.pages;
-          state.tiles = sd2Tiles.length ? sd2Tiles : state.tiles;
-          state.activePageId = state.pages[0].id;
-        } else {
-          state.settings = json.settings || state.settings;
-          state.tiles = json.tiles || state.tiles;
-          state.pages = json.pages || state.pages;
-          state.activePageId = state.pages[0].id;
+  if (fileInput) {
+    fileInput.onchange = (e) => {
+      const file = e.target.files[0];
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        try {
+          const json = JSON.parse(event.target.result);
+          if (fileInput.dataset.mode === "sd2") {
+            const sd2Pages = (json.groups || []).map((g) => ({
+              id: String(g.id),
+              name: g.title,
+            }));
+            const sd2Tiles = (json.dials || []).map((d) => ({
+              id: String(d.id || Math.random()),
+              title: d.title,
+              url: d.url,
+              imageUrl: d.thumbnail || "",
+              position: d.position,
+              pageId: String(d.idgroup),
+            }));
+            state.pages = sd2Pages.length ? sd2Pages : state.pages;
+            state.tiles = sd2Tiles.length ? sd2Tiles : state.tiles;
+            state.activePageId = state.pages[0].id;
+          } else {
+            state.settings = json.settings || state.settings;
+            state.tiles = json.tiles || state.tiles;
+            state.pages = json.pages || state.pages;
+            state.activePageId = state.pages[0].id;
+          }
+          if (saveState()) {
+            modalRoot.innerHTML = "";
+            render();
+          }
+        } catch (err) {
+          alert("Invalid file format.");
         }
-        if (saveState()) {
-          close();
-          render();
-        }
-      } catch (err) {
-        alert("Invalid file format.");
+      };
+      reader.readAsText(file);
+    };
+  }
+
+  const resetBtn = document.getElementById("s-reset");
+  if (resetBtn) {
+    resetBtn.onclick = () => {
+      if (confirm("Reset EVERYTHING to defaults?")) {
+        localStorage.clear();
+        window.location.reload();
       }
     };
-    reader.readAsText(file);
-  };
+  }
 
-  document.getElementById("s-reset").onclick = () => {
-    if (confirm("Reset EVERYTHING to defaults?")) {
-      localStorage.clear();
-      window.location.reload();
-    }
-  };
+  const applyBtn = document.getElementById("s-apply");
+  if (applyBtn) {
+    applyBtn.onclick = () => {
+      const colsInput = document.getElementById("s-cols");
+      if (colsInput) {
+        state.settings.cols = Math.min(
+          12,
+          Math.max(1, parseInt(colsInput.value) || 4),
+        );
+      }
 
-  document.getElementById("s-apply").onclick = () => {
-    const colsInput = document.getElementById("s-cols");
-    if (colsInput) {
-      state.settings.cols = Math.min(
-        12,
-        Math.max(1, parseInt(colsInput.value) || 4),
-      );
-    }
-
-    document.querySelectorAll(".group-edit").forEach((inp) => {
-      const g = state.pages.find((p) => p.id === inp.dataset.groupId);
-      if (g) g.name = inp.value;
-    });
-    // Final check for successful save before closing modal
-    if (saveState()) {
-      close();
-      render();
-    }
-  };
+      document.querySelectorAll(".group-edit").forEach((inp) => {
+        const g = state.pages.find((p) => p.id === inp.dataset.groupId);
+        if (g) g.name = inp.value;
+      });
+      // Final check for successful save before closing modal
+      if (saveState()) {
+        modalRoot.innerHTML = "";
+        render();
+      }
+    };
+  }
 };
 
 // --- Lifecycle ---
