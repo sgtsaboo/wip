@@ -70,16 +70,6 @@ const initSearch = () => {
   _searchInitialized = true;
 };
 
-// Focus search input on '/' key
-window.addEventListener("keydown", (e) => {
-  if (e.key === "/" && document.activeElement !== searchInput) {
-    e.preventDefault();
-    searchInput.focus();
-  }
-});
-
-_searchInitialized = true;
-
 // --- State Management ---
 let state = {
   settings: JSON.parse(localStorage.getItem("speeddial_settings")) || {
@@ -180,7 +170,7 @@ const render = () => {
 
         <!-- Main Body -->
         <main class="flex flex-col items-center h-full overflow-y-auto no-scrollbar px-6 pb-24 z-10">
-        <div class="flex flex-col items-center justify-center my-6 w-full max-w-2xl mx-auto px-4"> <form id="search-form" class="relative w-full flex items-center bg-gray-800 rounded-xl shadow-2xl border border-gray-700 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 transition-all duration-200" > <select id="engine-select" class="bg-gray-700 text-gray-200 text-sm px-4 py-3 rounded-l-xl outline-none border-r border-gray-600 cursor-pointer hover:bg-gray-600 transition" ></select>
+        <div class="flex flex-col items-center justify-center my-6 w-full max-w-2xl mx-auto px-4"> <form id="search-form" class="relative w-full flex items-center bg-gray-800 rounded-xl shadow-2xl border border-gray-700 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 transition-all duration-200" > <select id="engine-select" class="bg-gray-700 text-gray-200 text-sm px-4 py-3 rounded-l-xl outline-none border-r border-gray-600 cursor-pointer hover:bg-gray-600 transition"></select>
         <input
   type="text"
   id="search-input"
@@ -580,7 +570,6 @@ const openEditModal = (tileId) => {
     modalRoot.innerHTML = "";
     render();
   };
-  weather;
 };
 
 const openSettings = () => {
@@ -621,7 +610,7 @@ const openSettings = () => {
                   <div class="absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all ${state.settings.openInNewTab ? "right-0.5" : "left-0.5"}"></div>
                 </div>
               </div>
-
+            </button>
             <button id="s-notes-pos" class="p-4 rounded-xl border flex flex-col gap-2 transition-all dark:border-slate-800 dark:bg-slate-800/50 hover:border-theme/40">
               <span class="text-[10px] font-bold uppercase opacity-50">Notes</span>
               <div class="flex items-center justify-between w-full">
@@ -817,35 +806,39 @@ const openSettings = () => {
     </div>
   `;
 
+  // Populate the Default Search Engine select now that the modal is in the DOM
+  const settingsEngineSelect = document.getElementById("s-default-engine");
+  if (settingsEngineSelect) {
+    settingsEngineSelect.innerHTML = "";
+    Object.keys(SEARCH_CONFIG.engines).forEach((key) => {
+      const engine = SEARCH_CONFIG.engines[key];
+      const opt = document.createElement("option");
+      opt.value = engine.url;
+      opt.textContent = engine.name;
+      settingsEngineSelect.appendChild(opt);
+    });
+
+    const fallbackEngineUrl =
+      SEARCH_CONFIG.engines[SEARCH_CONFIG.defaultEngine].url;
+    settingsEngineSelect.value =
+      (state.settings && state.settings.defaultSearchEngine) ||
+      fallbackEngineUrl;
+
+    settingsEngineSelect.onchange = (e) => {
+      state.settings.defaultSearchEngine = e.target.value;
+      saveState();
+      // update main engine select if present
+      const mainEngineSelect = document.getElementById("engine-select");
+      if (mainEngineSelect) mainEngineSelect.value = e.target.value;
+    };
+  }
+
   createIcons({ icons });
   attachSettingsEvents();
 };
 
-// Populate default search engine select in settings modal
-const defaultEngineSelect = document.getElementById("s-default-engine");
-if (defaultEngineSelect) {
-  defaultEngineSelect.innerHTML = "";
-  Object.keys(SEARCH_CONFIG.engines).forEach((key) => {
-    const engine = SEARCH_CONFIG.engines[key];
-    const opt = document.createElement("option");
-    opt.value = engine.url;
-    opt.textContent = engine.name;
-    defaultEngineSelect.appendChild(opt);
-  });
-  // set current value from state.settings (fallback to SEARCH_CONFIG.defaultEngine)
-  const fallbackEngineUrl =
-    SEARCH_CONFIG.engines[SEARCH_CONFIG.defaultEngine].url;
-  defaultEngineSelect.value =
-    (state.settings && state.settings.defaultSearchEngine) || fallbackEngineUrl;
+// --- Settings wiring and events are handled inside attachSettingsEvents() ---
 
-  defaultEngineSelect.onchange = (e) => {
-    state.settings.defaultSearchEngine = e.target.value;
-    saveState();
-    // update main engine select if present
-    const mainEngineSelect = document.getElementById("engine-select");
-    if (mainEngineSelect) mainEngineSelect.value = e.target.value;
-  };
-}
 const attachSettingsEvents = () => {
   const close = () => {
     modalRoot.innerHTML = "";
