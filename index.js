@@ -168,13 +168,13 @@ const render = () => {
 
   const date = state.currentTime;
 
-  const weekday = date.toLocaleDateString([], { weekday: "long" });
+  //const weekday = date.toLocaleDateString([], { weekday: "long" });
   const month = date.toLocaleDateString([], { month: "long" });
   const day = date.toLocaleDateString([], { day: "numeric" });
 
   // Join them with new lines
-  const dateStr = `${weekday},\n ${month}\n${day}`;
-
+  //const dateStr = `${weekday},\n ${month}\n${day}`;
+  const dateStr = `${month} ${day}`;
   const filteredTiles = state.tiles
     .filter((t) => t.pageId === state.activePageId)
     .sort((a, b) => a.position - b.position);
@@ -187,7 +187,7 @@ const render = () => {
         
         <!-- Left Sidebar -->
         <aside class="hidden md:flex flex-col items-center  p-8 overflow-y-auto no-scrollbar z-20">
-          <div id="time-display" class="text-4xl font-extrabold tracking-tighter tabular-nums drop-shadow-sm mb-8 ${isDark ? "text-slate-100" : "text-gray-900"}">
+          <div id="time-display" class="text-4xl font-normal tracking-wide tabular-nums drop-shadow-sm mb-8 ${isDark ? "text-slate-100" : "text-gray-900"}">
              ${timeStr}
           </div>
           <div id="weather-list-left" class="w-full flex flex-col gap-4"></div>
@@ -221,7 +221,7 @@ const render = () => {
               ${state.pages
                 .map(
                   (page) => `
-                <button data-page-id="${page.id}" class="group-tab px-4 py-3 text-sm font-bold transition-all relative ${state.activePageId === page.id ? "text-theme" : isDark ? "text-slate-200 hover:text-slate-500" : "text-gray-400 hover:text-gray-800"}">
+                <button data-page-id="${page.id}" class="group-tab px-4 py-3 text-lg font-normal transition-all relative ${state.activePageId === page.id ? "text-theme" : isDark ? "text-slate-200 hover:text-slate-500" : "text-gray-400 hover:text-gray-800"}">
                   ${page.name}
                   ${state.activePageId === page.id ? '<div class="absolute bottom-[-1px] left-0 w-full h-0.5 bg-theme"></div>' : ""}
                 </button>
@@ -246,7 +246,7 @@ const render = () => {
                     <!-- Proportional sizing: w-[35%] ensures icons grow/shrink with column count -->
                     <img src="${tile.imageUrl || getFavicon(tile.url)}" class="w-[30%] aspect-square object-contain drop-shadow-lg transition-transform group-hover:scale-110" />
                   </div>
-                  <div class="w-full border-t text-center truncate font-bold text-[clamp(12px,1vw,12px)] ${isDark ? "bg-white/5 border-white/10 text-slate-200" : "bg-black/5 border-black/5 text-gray-700"}">
+                  <div class="w-full border-t text-center truncate font-normal text-[clamp(16px,1vw,16px)] ${isDark ? "bg-white/5 border-white/10 text-slate-200" : "bg-black/5 border-black/5 text-gray-700"}">
                     ${tile.title}
                   </div>
                 </div>
@@ -261,16 +261,16 @@ const render = () => {
             
             <button id="add-tile-btn" class="flex flex-col items-center justify-center aspect-video rounded-xl border-2 border-dashed transition-all hover:scale-105 bg-widget p-[10%] ${isDark ? "border-white/10 text-slate-500 hover:border-theme/50 hover:text-theme" : "border-black/10 text-gray-400 hover:border-theme/40 hover:text-theme"}">
               <i data-lucide="plus" size="24%" class="max-w-[32px]"></i>
-              <span class="mt-2 text-[clamp(8px,0.8vw,11px)] font-bold uppercase tracking-widest">Add Link</span>
+              <span class="mt-2 text-[clamp(8px,0.8vw,11px)] font-normal uppercase tracking-widest">Add Link</span>
             </button>
           </div>
         </main>
 
         <!-- Right Sidebar -->
         <aside class="hidden md:flex flex-col items-center p-8 overflow-y-auto no-scrollbar z-20">
-  <div class="text-4xl font-extrabold tracking-tighter text-center leading-tight mb-8 whitespace-pre-line ${isDark ? "text-slate-100" : "text-gray-900"}">${dateStr}</div>
+  <div class="text-4xl font-normal tracking-wide text-center leading-tight mb-8 whitespace-pre-line ${isDark ? "text-slate-100" : "text-gray-900"}">${dateStr}</div>
   
-  <div id="weather-list-right" class="w-full flex flex-col gap-4 mb-8"></div>
+  <!-- <div id="weather-list-right" class="w-full flex flex-col gap-4 mb-8"></div> -->
   <div id="calendar-area" class="w-full"></div>
   ${state.settings.showNotes && state.settings.notesPosition === "right" ? renderNotesWidget() : ""}
 </aside>
@@ -294,10 +294,10 @@ const renderNotesWidget = () => {
   const noteText = localStorage.getItem("speeddial_quicknote") || "";
   return `
     <div class="mt-8 p-4 rounded-xl border backdrop-blur-md shadow-xl bg-widget w-full max-w-[260px] ${state.settings.theme === "dark" ? "border-white/10 text-slate-100" : "border-black/5 text-gray-700"}">
-      <div class="flex items-center gap-2 mb-3 text-[10px] font-bold uppercase tracking-widest">
+      <div class="flex items-center gap-2 mb-3 text-[16px] font-normal uppercase tracking-widest">
         <i data-lucide="sticky-note" size="14"></i> Quick Notes
       </div>
-      <textarea id="notes-input" class="w-full h-32 bg-transparent border-none outline-none resize-none text-xs leading-relaxed placeholder:opacity-60" placeholder="Jot something down...">${noteText}</textarea>
+      <textarea id="notes-input" class="w-full h-32 bg-transparent border-none outline-none resize-none text-base leading-relaxed placeholder:opacity-60" placeholder="Jot something down...">${noteText}</textarea>
     </div>
   `;
 };
@@ -318,13 +318,13 @@ const renderCalendar = () => {
     <div class="p-5 rounded-xl border backdrop-blur-md shadow-xl bg-widget ${isDark ? "border-white/10 text-slate-100" : "border-black/5 text-gray-700"}">
       <div class="flex items-center justify-between mb-4">
         <button id="cal-prev" class="p-1 hover:bg-current/10 rounded-full transition-colors"><i data-lucide="chevron-left" size="16"></i></button>
-        <div class="text-center text-[11px] font-bold uppercase tracking-widest">
+        <div class="text-center text-[16px] font-normal uppercase tracking-widest">
           ${viewDate.toLocaleString("default", { month: "long", year: "numeric" })}
         </div>
         <button id="cal-next" class="p-1 hover:bg-current/10 rounded-full transition-colors"><i data-lucide="chevron-right" size="16"></i></button>
       </div>
-      <div class="grid grid-cols-7 gap-1 text-[10px] text-center">
-        ${["S", "M", "T", "W", "T", "F", "S"].map((d) => `<div class="font-bold ">${d}</div>`).join("")}
+      <div class="grid grid-cols-7 gap-1 text-[16px] text-center">
+        ${["S", "M", "T", "W", "T", "F", "S"].map((d) => `<div class="font-normal ">${d}</div>`).join("")}
         ${Array(firstDay)
           .fill(0)
           .map(() => "<div></div>")
@@ -336,14 +336,14 @@ const renderCalendar = () => {
               month === today.getMonth() &&
               year === today.getFullYear();
             return `
-            <button data-day="${d}" class="cal-day aspect-square flex items-center justify-center rounded-lg hover:bg-theme hover:text-white transition-all ${isToday ? "bg-theme text-white font-bold" : ""}">
+            <button data-day="${d}" class="cal-day aspect-square flex items-center justify-center rounded-lg hover:bg-theme hover:text-white transition-all ${isToday ? "bg-theme text-white font-normal" : ""}">
               ${d}
             </button>
           `;
           })
           .join("")}
       </div>
-      <button id="cal-today" class="w-full mt-4 text-[9px] font-bold uppercase tracking-widest hover:opacity-100 transition-opacity">Today</button>
+      <button id="cal-today" class="w-full mt-4 text-[12px] font-normal uppercase tracking-widest hover:opacity-100 transition-opacity">Today</button>
     </div>
   `;
   createIcons({ icons });
@@ -408,7 +408,7 @@ const fetchWeather = async () => {
       <div data-lat="${r.lat}" data-lng="${r.lng}" class="weather-widget-card p-4 rounded-xl border backdrop-blur-md shadow-lg bg-widget flex flex-col cursor-pointer hover:ring-2 hover:ring-theme/30 transition-all ${isDark ? "border-white/10 text-slate-100" : "border-black/5 text-gray-700"}">
         <div class="flex items-center justify-between mb-2">
           <div class="overflow-hidden">
-            <div class="text-[14px] font-bold uppercase tracking-widest truncate">${r.location}</div>
+            <div class="text-[14px] font-normal uppercase tracking-widest truncate">${r.location}</div>
             <div class="text-2xl font-black">${temp}${unitSymbol}</div>
           </div>
           <i data-lucide="${r.data.is_day ? "sun" : "moon"}" class="text-theme"></i>
@@ -416,7 +416,7 @@ const fetchWeather = async () => {
         ${
           state.settings.weatherStyle === "detailed"
             ? `
-          <div class="flex items-center justify-between text-[9px] border-t pt-2 mt-1 border-current/10">
+          <div class="flex items-center justify-between text-[14px] border-t pt-2 mt-1 border-current/10">
             <span>Wind: ${Math.round(r.data.wind_speed_10m)}${state.settings.weatherUnit === "imperial" ? "mph" : "km/h"}</span>
             <span>Humid: ${r.data.relative_humidity_2m}%</span>
           </div>
@@ -527,34 +527,34 @@ const openEditModal = (tileId) => {
     <div class="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-fade-in">
       <div class="w-full max-w-md rounded-2xl shadow-2xl overflow-hidden border animate-zoom-in ${isDark ? "bg-slate-900 border-slate-800 text-slate-100" : "bg-white border-gray-100 text-gray-900"}">
         <div class="p-6 border-b ${isDark ? "border-slate-800" : "border-gray-100"} flex justify-between items-center">
-          <h2 class="text-xl font-bold">${tileId ? "Edit Link" : "Add New Link"}</h2>
+          <h2 class="text-xl font-normal">${tileId ? "Edit Link" : "Add New Link"}</h2>
           <button id="modal-close" class="opacity-50 hover:opacity-100 transition-opacity">X</button>
         </div>
         <div class="p-6 space-y-4">
           <div>
-            <label class="text-[10px] font-bold uppercase opacity-50 block mb-1">URL</label>
+            <label class="text-[10px] font-normal uppercase opacity-50 block mb-1">URL</label>
             <input id="form-url" type="text" value="${tile.url}" placeholder="https://..." class="w-full px-4 py-3 rounded-lg border dark:bg-slate-800 dark:border-slate-700 outline-none focus:ring-2 focus:ring-theme" />
           </div>
           <div>
-            <label class="text-[10px] font-bold uppercase opacity-50 block mb-1">Title</label>
+            <label class="text-[10px] font-normal uppercase opacity-50 block mb-1">Title</label>
             <input id="form-title" type="text" value="${tile.title}" placeholder="My Site" class="w-full px-4 py-3 rounded-lg border dark:bg-slate-800 dark:border-slate-700 outline-none focus:ring-2 focus:ring-theme" />
           </div>
           <div>
-            <label class="text-[10px] font-bold uppercase opacity-50 block mb-1">Custom Image URL (Optional)</label>
+            <label class="text-[10px] font-normal uppercase opacity-50 block mb-1">Custom Image URL (Optional)</label>
             <input id="form-image" type="text" value="${tile.imageUrl || ""}" placeholder="https://..." class="w-full px-4 py-3 rounded-lg border dark:bg-slate-800 dark:border-slate-700 outline-none focus:ring-2 focus:ring-theme" />
           </div>
           <div>
-            <label class="text-[10px] font-bold uppercase opacity-50 block mb-1">Group</label>
+            <label class="text-[10px] font-normal uppercase opacity-50 block mb-1">Group</label>
             <select id="form-group" class="w-full px-4 py-3 rounded-lg border dark:bg-slate-800 dark:border-slate-700 outline-none focus:ring-2 focus:ring-theme">
               ${state.pages.map((p) => `<option value="${p.id}" ${p.id === tile.pageId ? "selected" : ""}>${p.name}</option>`).join("")}
             </select>
           </div>
         </div>
         <div class="p-6 bg-current/5 flex gap-3">
-          ${tileId ? `<button id="form-delete" class="px-5 py-3 text-red-500 hover:bg-red-500/10 rounded-lg font-bold">Delete</button>` : ""}
+          ${tileId ? `<button id="form-delete" class="px-5 py-3 text-red-500 hover:bg-red-500/10 rounded-lg font-normal">Delete</button>` : ""}
           <div class="flex-1"></div>
-          <button id="form-cancel" class="px-6 py-3 border rounded-lg font-bold">Cancel</button>
-          <button id="form-save" class="px-6 py-3 bg-theme text-white rounded-lg font-bold">Save</button>
+          <button id="form-cancel" class="px-6 py-3 border rounded-lg font-normal">Cancel</button>
+          <button id="form-save" class="px-6 py-3 bg-theme text-white rounded-lg font-normal">Save</button>
         </div>
       </div>
     </div>
@@ -604,43 +604,43 @@ const openSettings = () => {
     <div class="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-fade-in">
       <div class="w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden border animate-zoom-in ${isDark ? "bg-slate-900 border-slate-800 text-slate-100" : "bg-white border-gray-100 text-gray-900"}">
         <div class="p-6 border-b ${isDark ? "border-slate-800" : "border-gray-100"} flex justify-between items-center">
-          <h2 class="text-xl font-bold flex items-center gap-2"><i data-lucide="settings"></i>Settings</h2>
+          <h2 class="text-xl font-normal flex items-center gap-2"><i data-lucide="settings"></i>Settings</h2>
           <button id="s-close" class="opacity-50 hover:opacity-100 transition-opacity">X</button>
         </div>
         <div class="p-6 space-y-8 overflow-y-auto max-h-[70vh] no-scrollbar">
           <!-- Quick Toggles -->
           <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
             <button id="s-theme" class="p-4 rounded-xl border flex flex-col gap-2 transition-all dark:border-slate-800 dark:bg-slate-800/50 hover:border-theme/40">
-              <span class="text-[10px] font-bold uppercase opacity-50">Theme</span>
+              <span class="text-[10px] font-normal uppercase opacity-50">Theme</span>
               <div class="flex items-center justify-between w-full">
-                <span class="text-xs font-bold">${isDark ? "Dark" : "Light"}</span>
+                <span class="text-xs font-normal">${isDark ? "Dark" : "Light"}</span>
                 <div class="w-8 h-4 rounded-full relative transition-colors ${isDark ? "bg-theme" : "bg-gray-300"}">
                   <div class="absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all ${isDark ? "right-0.5" : "left-0.5"}"></div>
                 </div>
               </div>
             </button>
              <button id="s-weather-toggle" class="p-4 rounded-xl border flex flex-col gap-2 transition-all dark:border-slate-800 dark:bg-slate-800/50 hover:border-theme/40">
-              <span class="text-[10px] font-bold uppercase opacity-50">Weather</span>
+              <span class="text-[10px] font-normal uppercase opacity-50">Weather</span>
               <div class="flex items-center justify-between w-full">
-                <span class="text-xs font-bold">${state.settings.showWeather ? "On" : "Off"}</span>
+                <span class="text-xs font-normal">${state.settings.showWeather ? "On" : "Off"}</span>
                 <div class="w-8 h-4 rounded-full relative transition-colors ${state.settings.showWeather ? "bg-theme" : "bg-gray-300"}">
                   <div class="absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all ${state.settings.showWeather ? "right-0.5" : "left-0.5"}"></div>
                 </div>
               </div>
             </button>
             <button id="s-tab" class="p-4 rounded-xl border flex flex-col gap-2 transition-all dark:border-slate-800 dark:bg-slate-800/50 hover:border-theme/40">
-              <span class="text-[10px] font-bold uppercase opacity-50">Links</span>
+              <span class="text-[10px] font-normal uppercase opacity-50">Links</span>
               <div class="flex items-center justify-between w-full">
-                <span class="text-xs font-bold">New Tab</span>
+                <span class="text-xs font-normal">New Tab</span>
                 <div class="w-8 h-4 rounded-full relative transition-colors ${state.settings.openInNewTab ? "bg-theme" : "bg-gray-300"}">
                   <div class="absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all ${state.settings.openInNewTab ? "right-0.5" : "left-0.5"}"></div>
                 </div>
               </div>
             </button>
             <button id="s-notes-pos" class="p-4 rounded-xl border flex flex-col gap-2 transition-all dark:border-slate-800 dark:bg-slate-800/50 hover:border-theme/40">
-              <span class="text-[10px] font-bold uppercase opacity-50">Notes</span>
+              <span class="text-[10px] font-normal uppercase opacity-50">Notes</span>
               <div class="flex items-center justify-between w-full">
-                <span class="text-xs font-bold uppercase">${state.settings.notesPosition}</span>
+                <span class="text-xs font-normal uppercase">${state.settings.notesPosition}</span>
                 <i data-lucide="layout-template" size="14"></i>
               </div>
             </button>
@@ -649,7 +649,7 @@ const openSettings = () => {
           <!-- Color Pickers -->
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div class="space-y-3">
-              <label class="text-[10px] font-bold uppercase opacity-50 flex items-center gap-2">
+              <label class="text-[10px] font-normal uppercase opacity-50 flex items-center gap-2">
                 <i data-lucide="palette" size="14"></i> Accent Color
               </label>
               <div class="flex flex-wrap gap-2 items-center p-3 rounded-xl border dark:border-slate-800 bg-current/5">
@@ -670,7 +670,7 @@ const openSettings = () => {
                   .join("")}
                 <div class="flex items-center gap-3 ml-auto pl-3 border-l border-current/10">
                   <div class="flex flex-col">
-                    <span class="text-[8px] opacity-40 uppercase font-bold">Custom</span>
+                    <span class="text-[8px] opacity-40 uppercase font-normal">Custom</span>
                     <span id="accent-hex-display" class="text-[10px] font-mono opacity-80 uppercase">${state.settings.themeColor}</span>
                   </div>
                   <input type="color" id="s-custom-accent" value="${state.settings.themeColor}" class="w-8 h-8 border-none bg-transparent cursor-pointer rounded-lg overflow-hidden" />
@@ -678,7 +678,7 @@ const openSettings = () => {
               </div>
             </div>
             <div class="space-y-3">
-              <label class="text-[10px] font-bold uppercase opacity-50 flex items-center gap-2">
+              <label class="text-[10px] font-normal uppercase opacity-50 flex items-center gap-2">
                 <i data-lucide="image" size="14"></i> Background Color
               </label>
               <div class="flex flex-wrap gap-2 items-center p-3 rounded-xl border dark:border-slate-800 bg-current/5">
@@ -698,7 +698,7 @@ const openSettings = () => {
                   .join("")}
                 <div class="flex items-center gap-3 ml-auto pl-3 border-l border-current/10">
                   <div class="flex flex-col">
-                    <span class="text-[8px] opacity-40 uppercase font-bold">Custom</span>
+                    <span class="text-[8px] opacity-40 uppercase font-normal">Custom</span>
                     <span id="bg-hex-display" class="text-[10px] font-mono opacity-80 uppercase">${state.settings.backgroundColor}</span>
                   </div>
                   <input type="color" id="s-custom-bg" value="${state.settings.backgroundColor}" class="w-8 h-8 border-none bg-transparent cursor-pointer rounded-lg overflow-hidden" />
@@ -709,19 +709,19 @@ const openSettings = () => {
 
           <!-- Background Image Section -->
           <div class="space-y-3">
-            <label class="text-[10px] font-bold uppercase opacity-50 flex items-center gap-2">
+            <label class="text-[10px] font-normal uppercase opacity-50 flex items-center gap-2">
               <i data-lucide="image" size="14"></i> Background Photo
             </label>
             <div class="flex flex-col gap-3 p-4 rounded-xl border dark:border-slate-800 bg-current/5">
               <div class="flex flex-col gap-2">
-                <span class="text-[10px] opacity-60 font-bold">IMAGE URL</span>
+                <span class="text-[10px] opacity-60 font-normal">IMAGE URL</span>
                 <input id="s-bg-url" type="text" value="${state.settings.backgroundImage || ""}" placeholder="https://source.unsplash.com/random" class="w-full px-3 py-2 text-xs border rounded-lg dark:bg-slate-800 dark:border-slate-700 outline-none focus:ring-1 focus:ring-theme" />
               </div>
               <div class="flex items-center gap-3 mt-2">
-                <button id="s-bg-upload-btn" class="flex-1 py-2 px-4 flex items-center justify-center gap-2 bg-theme/10 text-theme rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-theme/20 transition-all">
+                <button id="s-bg-upload-btn" class="flex-1 py-2 px-4 flex items-center justify-center gap-2 bg-theme/10 text-theme rounded-lg text-[10px] font-normal uppercase tracking-widest hover:bg-theme/20 transition-all">
                   <i data-lucide="upload" size="14"></i> Upload Local File
                 </button>
-                <button id="s-bg-clear" class="py-2 px-4 flex items-center justify-center gap-2 bg-red-500/10 text-red-500 rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-red-500/20 transition-all">
+                <button id="s-bg-clear" class="py-2 px-4 flex items-center justify-center gap-2 bg-red-500/10 text-red-500 rounded-lg text-[10px] font-normal uppercase tracking-widest hover:bg-red-500/20 transition-all">
                   <i data-lucide="x-circle" size="14"></i> Clear
                 </button>
               </div>
@@ -732,7 +732,7 @@ const openSettings = () => {
 
           <!-- Search Engine selection -->
           <div class="space-y-3">
-            <label class="text-[10px] font-bold uppercase opacity-50 flex items-center gap-2">
+            <label class="text-[10px] font-normal uppercase opacity-50 flex items-center gap-2">
               <i data-lucide="search"></i> Default Search Engine
             </label>
             <div class="p-3 rounded-xl border dark:border-slate-800 bg-current/5 flex items-center gap-2">
@@ -744,13 +744,13 @@ const openSettings = () => {
 
           <!-- Weather Cities -->
           <div class="space-y-4">
-            <label class="text-[10px] font-bold uppercase opacity-50 flex items-center gap-2"><i data-lucide="map-pin" size="14"></i> Weather Cities (Up to 5)</label>
+            <label class="text-[10px] font-normal uppercase opacity-50 flex items-center gap-2"><i data-lucide="map-pin" size="14"></i> Weather Cities (Up to 5)</label>
             <div class="space-y-2">
               ${state.settings.weatherConfigs
                 .map(
                   (c) => `
                 <div class="flex items-center justify-between p-3 rounded-xl border dark:border-slate-800 bg-current/5">
-                  <span class="text-xs font-bold">${c.location}</span>
+                  <span class="text-xs font-normal">${c.location}</span>
                   <button class="city-del p-1 text-red-500 opacity-50 hover:opacity-100" data-city-id="${c.id}"><i data-lucide="trash-2" size="14"></i></button>
                 </div>
               `,
@@ -774,13 +774,13 @@ const openSettings = () => {
 
           <!-- Layout Section -->
           <div class="space-y-4">
-            <label class="text-[10px] font-bold uppercase opacity-50 flex items-center gap-2"><i data-lucide="layout" size="14"></i> Grid Layout</label>
+            <label class="text-[10px] font-normal uppercase opacity-50 flex items-center gap-2"><i data-lucide="layout" size="14"></i> Grid Layout</label>
             <div class="p-4 rounded-xl border dark:border-slate-800 bg-current/5">
                <div class="flex items-center justify-between">
-                 <span class="text-xs font-bold">Columns</span>
+                 <span class="text-xs font-normal">Columns</span>
                  <div class="flex items-center gap-4">
                    <input id="s-cols" type="number" min="1" max="12" value="${state.settings.cols}" class="w-16 px-3 py-2 text-xs border rounded-lg dark:bg-slate-800 dark:border-slate-700 outline-none focus:ring-1 focus:ring-theme text-center" />
-                   <span class="text-[10px] opacity-40 uppercase font-bold">(Max 12)</span>
+                   <span class="text-[10px] opacity-40 uppercase font-normal">(Max 12)</span>
                  </div>
                </div>
             </div>
@@ -789,8 +789,8 @@ const openSettings = () => {
           <!-- Groups -->
           <div class="space-y-4">
              <div class="flex items-center justify-between">
-               <label class="text-[10px] font-bold uppercase opacity-50 flex items-center gap-2"><i data-lucide="layers" size="14"></i> Page Groups</label>
-               <button id="s-sort-az" class="text-[10px] font-bold text-theme uppercase tracking-widest hover:opacity-70 transition-opacity flex items-center gap-1"><i data-lucide="sort-asc" size="12"></i> Sort A-Z</button>
+               <label class="text-[10px] font-normal uppercase opacity-50 flex items-center gap-2"><i data-lucide="layers" size="14"></i> Page Groups</label>
+               <button id="s-sort-az" class="text-[10px] font-normal text-theme uppercase tracking-widest hover:opacity-70 transition-opacity flex items-center gap-1"><i data-lucide="sort-asc" size="12"></i> Sort A-Z</button>
              </div>
              <div class="space-y-2">
                ${state.pages
@@ -804,31 +804,31 @@ const openSettings = () => {
                `,
                  )
                  .join("")}
-               <button id="s-add-group" class="w-full py-3 border border-dashed rounded-xl opacity-50 hover:opacity-100 hover:border-theme/50 transition-all text-xs font-bold">+ New Group</button>
+               <button id="s-add-group" class="w-full py-3 border border-dashed rounded-xl opacity-50 hover:opacity-100 hover:border-theme/50 transition-all text-xs font-normal">+ New Group</button>
              </div>
           </div>
 
           <!-- Import/Export -->
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div class="p-4 rounded-xl border dark:border-slate-800 bg-current/5 space-y-3">
-              <span class="text-[10px] font-bold uppercase opacity-50">Data Management</span>
+              <span class="text-[10px] font-normal uppercase opacity-50">Data Management</span>
               <div class="flex gap-2">
-                <button id="s-export" class="flex-1 py-2 bg-theme/10 text-theme rounded-lg text-[9px] font-bold uppercase tracking-widest hover:bg-theme/20 transition-all">Export Native</button>
-                <button id="s-import" class="flex-1 py-2 bg-theme/10 text-theme rounded-lg text-[9px] font-bold uppercase tracking-widest hover:bg-theme/20 transition-all">Import Native</button>
+                <button id="s-export" class="flex-1 py-2 bg-theme/10 text-theme rounded-lg text-[9px] font-normal uppercase tracking-widest hover:bg-theme/20 transition-all">Export Native</button>
+                <button id="s-import" class="flex-1 py-2 bg-theme/10 text-theme rounded-lg text-[9px] font-normal uppercase tracking-widest hover:bg-theme/20 transition-all">Import Native</button>
               </div>
             </div>
             <div class="p-4 rounded-xl border dark:border-slate-800 bg-current/5 space-y-3">
-              <span class="text-[10px] font-bold uppercase opacity-50">Migrations</span>
-              <button id="s-import-sd2" class="w-full py-2 bg-theme/10 text-theme rounded-lg text-[9px] font-bold uppercase tracking-widest hover:bg-theme/20 transition-all">Import Speed Dial 2 JSON</button>
+              <span class="text-[10px] font-normal uppercase opacity-50">Migrations</span>
+              <button id="s-import-sd2" class="w-full py-2 bg-theme/10 text-theme rounded-lg text-[9px] font-normal uppercase tracking-widest hover:bg-theme/20 transition-all">Import Speed Dial 2 JSON</button>
             </div>
           </div>
 
           <input type="file" id="import-file" class="hidden" accept=".json" />
         </div>
         <div class="p-6 bg-black/5 flex gap-3">
-          <button id="s-reset" class="px-5 py-3 text-red-500 font-bold text-xs uppercase opacity-50 hover:opacity-100">Reset All</button>
+          <button id="s-reset" class="px-5 py-3 text-red-500 font-normal text-xs uppercase opacity-50 hover:opacity-100">Reset All</button>
           <div class="flex-1"></div>
-          <button id="s-apply" class="px-12 py-3 bg-theme text-white rounded-xl font-bold shadow-lg shadow-theme/30 transition-all hover:scale-105 active:scale-95">Apply & Save</button>
+          <button id="s-apply" class="px-12 py-3 bg-theme text-white rounded-xl font-normal shadow-lg shadow-theme/30 transition-all hover:scale-105 active:scale-95">Apply & Save</button>
         </div>
       </div>
     </div>
