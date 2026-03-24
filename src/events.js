@@ -1,6 +1,6 @@
-import { state, saveState } from "../modules/state.js";
-import { render } from "./render.js";
-import { openEditModal, openSettings } from "./modals.js";
+import { state, saveState } from "./modules/state.js";
+import { render } from "./ui/render.js";
+import { openEditModal, openSettings } from "./ui/modals.js";
 import Sortable from "sortablejs";
 
 export const attachAppEvents = () => {

@@ -1,4 +1,4 @@
-import { DEFAULT_SETTINGS, INITIAL_PAGES, INITIAL_TILES } from "../constants.js";
+import { DEFAULT_SETTINGS, INITIAL_PAGES, INITIAL_TILES } from "../../constants.js";
 
 // --- State Management ---
 export let state = {
